@@ -12,5 +12,8 @@
     "local"
   ],
   "author": "zimplexing",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.15.1"
+  }
 }
