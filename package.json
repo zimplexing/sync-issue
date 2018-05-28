@@ -4,7 +4,13 @@
   "description": "a sync github issue plugin",
   "main": "index.js",
   "scripts": {
+    "install": "node libs/install.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "issue": "./bin/issue",
+    "issue-pull": "./bin/issue-pull",
+    "issue-push": "./bin/issue-push"
   },
   "keywords": [
     "github",
