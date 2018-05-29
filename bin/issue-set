@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+
+const program = require('commander')
+const homedir = require('os').homedir()
+const fs = require('fs')
+const path = require('path')
+
+const conf = fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8')
+const confKey = ['username', 'repo', 'pullType', 'label']
+const transformBoolean = (str) => str === 'false' ? false : Boolean(str)
+
+program
+  .usage('set <config>')
+  .parse(process.argv)
+
+const [config] = program.args
+
+if (!config) {
+  console.error('请输入需要配置的参数')
+  return
+}
+
+let [key, value] = config.split('=')
+let parseConf = JSON.parse(conf)
+
+if (!confKey.includes(key)) {
+  console.error(`${key}参数不存在`)
+  return
+}
+
+parseConf[key] = ['label'].includes(key) ? transformBoolean(value) : value
+
+fs.writeFile(path.join(homedir, '.issue.json'), JSON.stringify(parseConf, null, 2), err => {
+  if (err) {
+    console.log(err)
+    return
+  }
+})

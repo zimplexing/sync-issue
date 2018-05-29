@@ -1,2 +1,9 @@
 #!/usr/bin/env node
-console.log('issue-pull');
+const program = require('commander')
+program
+  .version(require('../package').version)
+  .command('set <config>')
+
+
+console.log('issue-pull')
+program.parse(process.argv)
