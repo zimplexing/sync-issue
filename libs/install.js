@@ -12,7 +12,6 @@ const initConfig = {
 
 fs.writeFile(path.join(homedir, '.issue.json'), JSON.stringify(initConfig, null, 2), err => {
   if (err) {
-    console.log(err);
-    return
+    console.log(err)
   }
 })
