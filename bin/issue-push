@@ -1,2 +1,18 @@
 #!/usr/bin/env node
-console.log('issue-push');
+
+const program = require('commander')
+const parseArgv  = require('../libs/parseArgv')
+
+program
+  .option('-i --issueNo [a]', '只能拉取指定的issue')
+  .option('-s --state', '拉取某个状态的issue，可选open/close/all，默认all')
+  .option('-u --username', 'github用户名')
+  .option('-r --repo', '仓库名称')
+  .parse(process.argv)
+
+console.log(program.issueNo);
+console.log(program.state);
+console.log(program.username);
+console.log(program.repo);
+
+// 新建和编辑如何统一起来

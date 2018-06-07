@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 const program = require('commander')
 const axios = require('axios')
 const homedir = require('os').homedir()
@@ -8,10 +9,20 @@ const ora = require('ora')
 const chalk = require('chalk')
 
 program
-  .option('-n, --issueNo', '只能拉取指定的issue')
+  .option('-i --issueNo <value>', '只能拉取指定的issue')
+  .option('-s --state <value>', '拉取某个状态的issue，可选open/close/all，默认all')
+  .option('-u --username <value>', 'github用户名')
+  .option('-r --repo <value>', '仓库名称')
   .parse(process.argv)
 
-const config =JSON.parse(fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8'))
+let config =JSON.parse(fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8'))
+// console.log(config);
+// Object.assign(config, {
+//   state: program.state,
+//   username: program.state,
+//   repo: program.state
+// })
+// console.log(config);
 
 const getIssue = (issueNo = '') => {
   const spinner = ora('start pull issue...').start()
@@ -21,7 +32,7 @@ const getIssue = (issueNo = '') => {
     headers: { 'content-type': 'application/vnd.github.VERSION.raw+json' },
     url: `https://api.github.com/repos/${config.username}/${config.repo}/issues${issueNo ? '/'+ issueNo : ''}`,
     params: {
-      state: config.pullType
+      state: config.state
     }
   }).then(docs => {
     let issueList = issueNo ? [docs.data] : docs.data
@@ -41,21 +52,23 @@ const getIssue = (issueNo = '') => {
   })
 }
 
-// 获取所有的issue
-if (!program.args[0]) {
-  getIssue()
-} else {
-  // 获取指定的issue
-  const issueNo = program.args.map(no => {
-    if (!Number.isNaN(Number(no))) {
-      return Number(no)
-    }
-  })
+getIssue(Number(program.issueNo))
 
-  if (!issueNo.length) {
-    console.error(chalk.red('请输入正确的issue的标号'))
-    return
-  }
+// 获取所有的issue
+// if (!program.issueNo) {
+//   getIssue()
+// } else {
+  // 获取指定的issue
+  // const issueNo = num.map(no => {
+  //   if (!Number.isNaN(Number(no))) {
+  //     return Number(no)
+  //   }
+  // })
+
+  // if (!issueNo.length) {
+  //   console.error(chalk.red('请输入正确的issue的标号'))
+  //   return
+  // }
   
-  getIssue(issueNo)
-}
+  // getIssue(Number(issueNo))
+// }
