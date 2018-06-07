@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const program = require('commander')
 const axios = require('axios')
+const homedir = require('os').homedir()
 const fs = require('fs')
 const path = require('path')
 const ora = require('ora')
@@ -10,13 +11,15 @@ program
   .option('-n, --issueNo', '只能拉取指定的issue')
   .parse(process.argv)
 
+const config =JSON.parse(fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8'))
+
 // 获取所有的issue
 if (!program.args[0]) {
   const spinner = ora('start pull issue...').start()
   axios({
     methods: 'get',
     headers: { 'content-type': 'application/vnd.github.VERSION.raw+json' },
-    url: 'https://api.github.com/repos/zimplexing/zzZ/issues'
+    url: `https://api.github.com/repos/${config.username}/${config.repo}/issues`
   }).then(docs => {
     for (const doc of docs.data) {
       spinner.text = `pull${doc.title}...` 
