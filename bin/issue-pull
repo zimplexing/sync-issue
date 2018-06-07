@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 const program = require('commander')
 const axios = require('axios')
+const fs = require('fs')
+const path = require('path')
+const ora = require('ora')
+const chalk = require('chalk')
 
 program
   .option('-n, --issueNo', '只能拉取指定的issue')
@@ -8,27 +12,35 @@ program
 
 // 获取所有的issue
 if (!program.args[0]) {
+  const spinner = ora('start pull issue...').start()
   axios({
     methods: 'get',
     headers: { 'content-type': 'application/vnd.github.VERSION.raw+json' },
     url: 'https://api.github.com/repos/zimplexing/zzZ/issues'
-  }).then(doc => {
-    console.log(doc);
+  }).then(docs => {
+    for (const doc of docs.data) {
+      spinner.text = `pull${doc.title}...` 
+      fs.writeFile(path.join(__dirname, `${doc.title}.md`), doc.body, err => {
+        if (err) {
+          spinner.fail(`${doc.title} pull failed, err: ${err.Error}`)
+          console.log(chalk.red(err))
+        }
+        spinner.succeed(`${doc.title} pull succeed！`)
+      })
+    }
   }, err => {
-    console.log(err);
+    spinner.stop()
+    console.log(chalk.red(err))
   })
-  return
-}
+} else {
+  // 获取指定的issue
+  const issueNo = program.args.map(no => {
+    if (!Number.isNaN(Number(no))) {
+      return Number(no)
+    }
+  })
 
-// 获取指定的issue
-const issueNo = program.args.map(no => {
-  if (!Number.isNaN(Number(no))) {
-    return Number(no)
+  if (!issueNo.length) {
+    console.error(chalk.red('请输入正确的issue的标号'))
   }
-})
-
-if (!issueNo.length) {
-  console.error('请输入正确的issue的标号')
 }
-
-console.log(issueNo);

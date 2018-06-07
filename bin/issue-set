@@ -33,6 +33,5 @@ parseConf[key] = ['label'].includes(key) ? transformBoolean(value) : value
 fs.writeFile(path.join(homedir, '.issue.json'), JSON.stringify(parseConf, null, 2), err => {
   if (err) {
     console.log(err)
-    return
   }
 })
