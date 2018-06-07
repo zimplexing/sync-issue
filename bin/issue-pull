@@ -13,15 +13,19 @@ program
 
 const config =JSON.parse(fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8'))
 
-// 获取所有的issue
-if (!program.args[0]) {
+const getIssue = (issueNo = '') => {
   const spinner = ora('start pull issue...').start()
+  // https://developer.github.com/v3/issues/#list-issues-for-a-repository
   axios({
     methods: 'get',
     headers: { 'content-type': 'application/vnd.github.VERSION.raw+json' },
-    url: `https://api.github.com/repos/${config.username}/${config.repo}/issues`
+    url: `https://api.github.com/repos/${config.username}/${config.repo}/issues${issueNo ? '/'+ issueNo : ''}`,
+    params: {
+      state: config.pullType
+    }
   }).then(docs => {
-    for (const doc of docs.data) {
+    let issueList = issueNo ? [docs.data] : docs.data
+    for (const doc of issueList) {
       spinner.text = `pull ${doc.title}...` 
       try {
         fs.writeFileSync(path.join(process.cwd(), `${doc.title}.md`), doc.body)
@@ -35,6 +39,11 @@ if (!program.args[0]) {
     spinner.stop()
     console.log(chalk.red(err))
   })
+}
+
+// 获取所有的issue
+if (!program.args[0]) {
+  getIssue()
 } else {
   // 获取指定的issue
   const issueNo = program.args.map(no => {
@@ -45,5 +54,8 @@ if (!program.args[0]) {
 
   if (!issueNo.length) {
     console.error(chalk.red('请输入正确的issue的标号'))
+    return
   }
+  
+  getIssue(issueNo)
 }
