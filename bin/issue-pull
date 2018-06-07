@@ -22,14 +22,14 @@ if (!program.args[0]) {
     url: `https://api.github.com/repos/${config.username}/${config.repo}/issues`
   }).then(docs => {
     for (const doc of docs.data) {
-      spinner.text = `pull${doc.title}...` 
-      fs.writeFile(path.join(__dirname, `${doc.title}.md`), doc.body, err => {
-        if (err) {
-          spinner.fail(`${doc.title} pull failed, err: ${err.Error}`)
-          console.log(chalk.red(err))
-        }
+      spinner.text = `pull ${doc.title}...` 
+      try {
+        fs.writeFileSync(path.join(process.cwd(), `${doc.title}.md`), doc.body)
         spinner.succeed(`${doc.title} pull succeed！`)
-      })
+      } catch (error) {
+        spinner.fail(`${doc.title} pull failed`)
+        console.log(chalk.red(error))
+      }
     }
   }, err => {
     spinner.stop()
