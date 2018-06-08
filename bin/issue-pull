@@ -8,29 +8,41 @@ const path = require('path')
 const ora = require('ora')
 const chalk = require('chalk')
 
+const issueList = (value) => {
+  return value.split(',').map(Number)
+}
+
 program
-  .option('-i --issueNo <value>', '只能拉取指定的issue')
-  .option('-s --state <value>', '拉取某个状态的issue，可选open/close/all，默认all')
-  .option('-u --username <value>', 'github用户名')
-  .option('-r --repo <value>', '仓库名称')
+  .option('-i --issueNo [value]', '拉取指定的issue，多个使用逗号分隔', issueList)
+  .option('-s --state [value]', '拉取某个状态的issue，可选open/close/all，默认all')
+  .option('-u --username [value]', 'github用户名')
+  .option('-r --repo [value]', '仓库名称')
   .parse(process.argv)
 
 let config =JSON.parse(fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8'))
-// console.log(config);
-// Object.assign(config, {
-//   state: program.state,
-//   username: program.state,
-//   repo: program.state
-// })
-// console.log(config);
+let userTempConf = {}
+  
+if (program.state) {
+  userTempConf['state'] = program.state
+}
 
-const getIssue = (issueNo = '') => {
+if (program.username) {
+  userTempConf['username'] = program.username
+}
+
+if (program.repo) {
+  userTempConf['repo'] = program.repo
+}
+
+Object.assign(config,userTempConf)
+
+const getIssue = (issueNo) => {
   const spinner = ora('start pull issue...').start()
   // https://developer.github.com/v3/issues/#list-issues-for-a-repository
   axios({
     methods: 'get',
     headers: { 'content-type': 'application/vnd.github.VERSION.raw+json' },
-    url: `https://api.github.com/repos/${config.username}/${config.repo}/issues${issueNo ? '/'+ issueNo : ''}`,
+    url: `https://api.github.com/repos/${config.username}/${config.repo}/issues${issueNo !== 'all' ? '/'+ issueNo : ''}`,
     params: {
       state: config.state
     }
@@ -52,23 +64,4 @@ const getIssue = (issueNo = '') => {
   })
 }
 
-getIssue(Number(program.issueNo))
-
-// 获取所有的issue
-// if (!program.issueNo) {
-//   getIssue()
-// } else {
-  // 获取指定的issue
-  // const issueNo = num.map(no => {
-  //   if (!Number.isNaN(Number(no))) {
-  //     return Number(no)
-  //   }
-  // })
-
-  // if (!issueNo.length) {
-  //   console.error(chalk.red('请输入正确的issue的标号'))
-  //   return
-  // }
-  
-  // getIssue(Number(issueNo))
-// }
+(program.issueNo || ['all']).map(getIssue)
