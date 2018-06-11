@@ -1,18 +1,81 @@
 #!/usr/bin/env node
 
 const program = require('commander')
-const parseArgv  = require('../libs/parseArgv')
+const axios = require('axios')
+const path = require('path')
+const homedir = require('os').homedir()
+const fs = require('fs')
+const ora = require('ora')
+const chalk = require('chalk')
+
+const config =JSON.parse(fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8'))
 
 program
-  .option('-i --issueNo [a]', '只能拉取指定的issue')
-  .option('-s --state', '拉取某个状态的issue，可选open/close/all，默认all')
-  .option('-u --username', 'github用户名')
-  .option('-r --repo', '仓库名称')
+  .option('-n --new [a]', '新建一个issue')
   .parse(process.argv)
 
-console.log(program.issueNo);
-console.log(program.state);
-console.log(program.username);
-console.log(program.repo);
+const parseMarkdownFile = (fileName) => {
+  let filePath = path.join(process.cwd(), fileName)
+  let body = fs.readFileSync(filePath, 'utf-8')
+  let basename = path.basename(filePath, '.md')
+  let [number, title] = basename.indexOf('_') > -1 
+    ? basename.split('_')
+    : [undefined, basename]
+  return {
+    number,
+    title,
+    body
+  }
+}
 
-// 新建和编辑如何统一起来
+const createIssue = (fileName) => {
+  let { title,body } = parseMarkdownFile(fileName)
+  const spinner = ora(`创建 <${title}>...`).start()
+  // https://developer.github.com/v3/issues/#create-an-issue
+  axios({
+    methods: 'POST',
+    headers: { 'content-type': 'application/vnd.github.VERSION.raw+json' },
+    url: `https://api.github.com/repos/${config.username}/${config.repo}/issues`,
+    data: { 
+      title: title,
+      body: body
+    }
+  }).then(docs => {
+    console.log(docs);
+    spinner.succeed(`<${title}> 创建成功。`)
+  }, err => {
+    spinner.stop()
+    console.error(err)
+  })
+}
+
+const editIssue = (fileName) => {
+  let { number,title,body } = parseMarkdownFile(fileName)
+  const spinner = ora(`更新 <${title}>...`).start()
+  // https://developer.github.com/v3/issues/#edit-an-issue
+  axios({
+    methods: 'PATCH',
+    headers: { 'content-type': 'application/vnd.github.VERSION.raw+json' },
+    url: `https://api.github.com/repos/${config.username}/${config.repo}/issues/${number}`,
+    data: { 
+      title: title,
+      body: body
+    }
+  }).then(docs => {
+    console.log(docs);
+    spinner.succeed(`<${title}>更新成功。`)
+  }, err => {
+    spinner.stop()
+    console.error(err)
+  })
+}
+if (program.new) {
+  createIssue(program.new)
+}
+
+if (program.args) {
+  for (let i = 0, len = program.args.length; i < len; i++) {
+    editIssue(program.args[i])
+  }
+}
+

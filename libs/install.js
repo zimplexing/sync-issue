@@ -6,7 +6,7 @@ const fs = require('fs')
 const initConfig = {
   username: 'zimplexing',
   repo: 'issue-sync',
-  pullType: 'all',
+  state: 'all',
   label: false
 }
 

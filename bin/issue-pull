@@ -47,11 +47,12 @@ const getIssue = (issueNo) => {
       state: config.state
     }
   }).then(docs => {
-    let issueList = issueNo ? [docs.data] : docs.data
+    let issueList = issueNo !== 'all' ? [docs.data] : docs.data
     for (const doc of issueList) {
+      console.log(doc);
       spinner.text = `pull ${doc.title}...` 
       try {
-        fs.writeFileSync(path.join(process.cwd(), `${doc.title}.md`), doc.body)
+        fs.writeFileSync(path.join(process.cwd(), `${doc.number}_${doc.title}.md`), doc.body)
         spinner.succeed(`${doc.title} pull succeed！`)
       } catch (error) {
         spinner.fail(`${doc.title} pull failed`)
@@ -60,7 +61,7 @@ const getIssue = (issueNo) => {
     }
   }, err => {
     spinner.stop()
-    console.log(chalk.red(err))
+    console.error(err)
   })
 }
 
