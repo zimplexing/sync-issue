@@ -7,6 +7,7 @@ const fs = require('fs')
 const path = require('path')
 const ora = require('ora')
 const chalk = require('chalk')
+const utils = require('../libs/utils')
 
 const issueList = (value) => {
   return value.split(',').map(Number)
@@ -49,13 +50,17 @@ const getIssue = (issueNo) => {
   }).then(docs => {
     let issueList = issueNo !== 'all' ? [docs.data] : docs.data
     for (const doc of issueList) {
-      console.log(doc);
+      // 文件名称不合法
+      if (!utils.isLegalPath(doc.title)) {
+        console.log(chalk.red(`${doc.title}文件名称不合法，请重新命名后，再重新拉取`))
+        break
+      }
       spinner.text = `pull ${doc.title}...` 
       try {
         fs.writeFileSync(path.join(process.cwd(), `${doc.number}_${doc.title}.md`), doc.body)
-        spinner.succeed(`${doc.title} pull succeed！`)
+        spinner.succeed(`${doc.title} 拉取成功！`)
       } catch (error) {
-        spinner.fail(`${doc.title} pull failed`)
+        spinner.fail(`${doc.title} 拉取失败`)
         console.log(chalk.red(error))
       }
     }

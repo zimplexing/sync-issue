@@ -4,10 +4,10 @@ const program = require('commander')
 const homedir = require('os').homedir()
 const fs = require('fs')
 const path = require('path')
+const utils = require('../libs/utils')
+const { CONF_KEY, BOOLEAN_KEY } = require('../libs/constants')
 
 const conf = fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8')
-const confKey = ['username', 'repo', 'state', 'label']
-const transformBoolean = (str) => str === 'false' ? false : Boolean(str)
 
 program
   .usage('set <config>')
@@ -23,12 +23,12 @@ if (!config) {
 let [key, value] = config.split('=')
 let parseConf = JSON.parse(conf)
 
-if (!confKey.includes(key)) {
+if (!CONF_KEY.includes(key)) {
   console.error(`${key}参数不存在`)
   return
 }
 
-parseConf[key] = ['label'].includes(key) ? transformBoolean(value) : value
+parseConf[key] = BOOLEAN_KEY.includes(key) ? utils.transformBoolean(value) : value
 
 fs.writeFile(path.join(homedir, '.issue.json'), JSON.stringify(parseConf, null, 2), err => {
   if (err) {

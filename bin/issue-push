@@ -7,6 +7,7 @@ const homedir = require('os').homedir()
 const fs = require('fs')
 const ora = require('ora')
 const chalk = require('chalk')
+const utils = require('../libs/utils')
 
 const config =JSON.parse(fs.readFileSync(path.join(homedir, '.issue.json'), 'utf-8'))
 
@@ -14,22 +15,8 @@ program
   .option('-n --new [a]', '新建一个issue')
   .parse(process.argv)
 
-const parseMarkdownFile = (fileName) => {
-  let filePath = path.join(process.cwd(), fileName)
-  let body = fs.readFileSync(filePath, 'utf-8')
-  let basename = path.basename(filePath, '.md')
-  let [number, title] = basename.indexOf('_') > -1 
-    ? basename.split('_')
-    : [undefined, basename]
-  return {
-    number,
-    title,
-    body
-  }
-}
-
 const createIssue = (fileName) => {
-  let { title,body } = parseMarkdownFile(fileName)
+  let { title,body } = utils.parseMarkdownFile(fileName)
   const spinner = ora(`创建 <${title}>...`).start()
   // https://developer.github.com/v3/issues/#create-an-issue
   axios({
